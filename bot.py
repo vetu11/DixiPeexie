@@ -29,6 +29,10 @@ def main():
     h = updater.dispatcher.add_handler
 
     # Assigning handlers
+    h(CommandHandler("fill_hands", handlers.fill_hands, pass_args=True))
+    h(CommandHandler("send_hands", handlers.send_hands))
+    h(CommandHandler("send_picks", handlers.send_picks))
+    h(MessageHandler(callback=handlers.private_message, filters=Filters.private))
     h(CommandHandler("start", handlers.start))
     h(CommandHandler("help", handlers.help))
     h(CommandHandler("more", handlers.more))
@@ -42,7 +46,7 @@ def main():
     h(MessageHandler(filters=Filters.successful_payment, callback=handlers.completed_donation))
     h(PreCheckoutQueryHandler(handlers.approve_transaction))
 
-    updater.dispatcher.add_error_handler(handlers.error)
+    # updater.dispatcher.add_error_handler(handlers.error)
 
     updater.start_polling()
 

@@ -1,7 +1,7 @@
 {
-  "lang_ver": "v0.1.0",
+  "lang_ver": "v0.2.0",
   "not_found": "ERROR: texto no encontrado. Por favor usa /support <mensaje> describiendo cómo ha ocurrido.",
-  "start": "Hola! Bienvenido!",
+  "start": "Registrado!",
   "help": "Este es el mensaje de ayuda.",
   "more": "¡He hecho más bots!\n@Pilocobot es un juego picante para beber con tus amigos, o para conocer mejor a los nuevos en la fiesta\n\n@QuienVienebot para contar facilmente los asistentes a un evento / queada.\n\n@SinSentidobot, que genera mensajes que parece que dicen algo pero la verdad que no.",
   "donate": "Hola! Muchas gracias de antemano por considerar donar. Mi nombre es Ventura, soy estudiante y desarrollo bots gratuítos en mi tiempo libre.\nEl dinero de las donaciones va directamente al mantenimiento de los servidores.\n\nPuedes donar a través de [PayPal](paypal.me/vetu11), por Telegram usando los botones de abajo o con Ethereum enviándolo a la siguiente cartera\n`0xa1B41eD75Da5d053793168D1B4F28610779E8a7c`",
