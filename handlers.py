@@ -7,7 +7,7 @@ from bot_tokens import PAYMENT_PROVIDER_TOKEN
 from lang import get_lang
 from telegram import ParseMode, InlineKeyboardMarkup, InlineKeyboardButton, LabeledPrice, InputMediaPhoto
 from pic_manager import pic_manager
-from random import randint
+from random import randint, shuffle
 from re import compile
 
 re_num = compile(r"\d$")
@@ -16,11 +16,17 @@ HAND_SIZE = 5
 
 hands = {}
 picks = {}
+random_picks = []
+voting_active = False
+available_pics = []
 
 
 def fill_hands(bot, update, args):
-    available_pics = pic_manager.get_pic_id_list()
+    global available_pics
     for tg_id in args:
+        if len(available_pics) < HAND_SIZE:
+            available_pics = pic_manager.get_pic_id_list()
+
         tg_id = int(tg_id)
         if tg_id in hands:
             hand = hands[tg_id]
@@ -32,12 +38,15 @@ def fill_hands(bot, update, args):
 
 
 def send_hands(bot, update):
+    clear_picks(bot, update)
+    toggle_voting(bot, update, False)
     for tg_id in hands:
         media = []
         n = 1
         for photo in hands[tg_id]:
             media.append(InputMediaPhoto(pic_manager.get_pic(photo), caption=str(n)))
             n += 1
+        bot.send_message(tg_id, "Elige una carta de tu mano.")
         messages = bot.send_media_group(tg_id, media)
         i = 0
         for message in messages:
@@ -46,22 +55,54 @@ def send_hands(bot, update):
 
 
 def send_picks(bot, update):
-    for tg_id in picks.keys():
-        bot.send_message(tg_id, "Elige uno de los siguientes:")
+    global random_picks
+    toggle_voting(bot, update, True)
+    random_picks = [(x, picks[x]) for x in picks.keys()]
+    print(picks)
+    print(random_picks)
+    shuffle(random_picks)
+    for pick in random_picks:
+        bot.send_message(pick[0], "Estas son las cartas en la mesa:")
         n = 1
-        for pic_id in picks.values():
-            bot.send_message(tg_id, str(n))
-            bot.send_photo(tg_id, pic_manager.get_pic(pic_id))
+        for pk in random_picks:
+            bot.send_message(pick[0], str(n))
+            bot.send_photo(pick[0], pic_manager.get_pic(pk[1]))
+            n += 1
 
 
 def private_message(bot, update):
+    print(voting_active)
     if not re_num.match(update.effective_message.text):
-        update.effective_message.reply_text("Envía un número del 1 al %s" % HAND_SIZE)
+        update.effective_message.reply_text("Envía un número del 1 al %s" % (len(picks) if voting_active else HAND_SIZE))
     else:
-        print("correct pm", hands, update.effective_user.id)
-        if update.effective_user.id in hands:
+        if not voting_active and update.effective_user.id in hands:
             picks[update.effective_user.id] = hands[update.effective_user.id].pop(int(update.effective_message.text) - 1)
-            print("pm picked", picks)
+            bot.send_message(const.ADMIN_TELEGRAM_ID, "Pick de %s recibido, %s picks en total" % (update.effective_user.first_name, len(picks)))
+        elif voting_active:
+            n = int(update.effective_message.text)
+            bot.send_message(const.ADMIN_TELEGRAM_ID, "%s (%s) ha votado la opción %s de %s" % (update.effective_user.first_name, update.effective_user.id, n, random_picks[n - 1]))
+
+
+def toggle_voting(bot, update, set=None):
+    global voting_active
+    voting_active = set if set is not None else (not voting_active)
+    bot.send_message(const.ADMIN_TELEGRAM_ID, "Votación activada" if voting_active else "Votación desactivada")
+
+
+
+def clear_hands(bot, update):
+    global hands
+    hands = {}
+    bot.send_message(const.ADMIN_TELEGRAM_ID, "Manos limpias")
+
+
+
+def clear_picks(bot, update):
+    global picks, random_picks
+    picks = {}
+    random_picks = []
+    bot.send_message(const.ADMIN_TELEGRAM_ID, "Picks limpiados")
+
 
 
 def generic_message(bot, update, text_code, **kwargs):
@@ -74,7 +115,7 @@ def generic_message(bot, update, text_code, **kwargs):
 
 def start(bot, update):
     generic_message(bot, update, "start")
-    bot.send_message(const.ADMIN_TELEGRAM_ID, "Registered: %s" % update.effective_user.id)
+    bot.send_message(const.ADMIN_TELEGRAM_ID, "Registered: %s (%s)" % (update.effective_user.first_name, update.effective_user.id))
 
 
 def help(bot, update):

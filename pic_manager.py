@@ -10,7 +10,8 @@ class _PicManager:
             self.pic_info = load(f)
         listed_pic_file_names = [pic["file_name"] for pic in self.pic_info.values()]
 
-        for file_name in listdir("pics/"):
+        pic_files = listdir("pics/")
+        for file_name in pic_files:
             if file_name not in listed_pic_file_names:
                 new_uuid = str(uuid4())
                 self.pic_info.update({new_uuid:{"pic_id": new_uuid, "file_name": file_name, "file_id": None}})
